@@ -1,3 +1,8 @@
+MidtermJSC370
+================
+Justin Won
+2025-03-17
+
 ### Introduction
 
 Crime rates vary significantly across countries and it is important to
@@ -25,10 +30,12 @@ development and educational investments.
 
 ### Methods
 
-    library(httr)
-    library(jsonlite)
-    library(dplyr)
-    library(ggplot2)
+``` r
+library(httr)
+library(jsonlite)
+library(dplyr)
+library(ggplot2)
+```
 
 The data was retrieved using API queries in R with the httr and jsonlite
 packages. I found the data for this analysis from the World Bank API,
@@ -44,18 +51,20 @@ represents the number of homicides per 100,000 individuals.
 Education Levels in Adult Literacy Rate using SE.ADT.LITR.ZS measures
 the percentage of literate adults in each country.
 
-    url_income <- "http://api.worldbank.org/v2/country/all/indicator/NY.GDP.PCAP.CD?format=json&date=2015"
+``` r
+url_income <- "http://api.worldbank.org/v2/country/all/indicator/NY.GDP.PCAP.CD?format=json&date=2015"
 
-    response_income <- GET(url_income)
-    data_income <- content(response_income, as = "text")
-    json_income <- fromJSON(data_income, flatten = TRUE)
+response_income <- GET(url_income)
+data_income <- content(response_income, as = "text")
+json_income <- fromJSON(data_income, flatten = TRUE)
 
-    df_income <- json_income[[2]] %>%
-      select(country_code = countryiso3code, year = date, income = value) %>%
-      filter(!is.na(income)) %>%  
-      filter(country_code != "")
+df_income <- json_income[[2]] %>%
+  select(country_code = countryiso3code, year = date, income = value) %>%
+  filter(!is.na(income)) %>%  
+  filter(country_code != "")
 
-    head(df_income)
+head(df_income)
+```
 
 Im using an API from worldbank.org. First, I got the API URL then
 fetched a dataset which contains regional aggregates/country code, year
@@ -65,18 +74,20 @@ rename the variables so that we can understand the variables more
 clearly. Then, I removed the N/A values for income and regional
 aggregates/country code to clean out the data.
 
-    url_crime <- "http://api.worldbank.org/v2/country/all/indicator/VC.IHR.PSRC.P5?format=json&date=2015"
+``` r
+url_crime <- "http://api.worldbank.org/v2/country/all/indicator/VC.IHR.PSRC.P5?format=json&date=2015"
 
-    response_crime <- GET(url_crime)
-    data_crime <- content(response_crime, as = "text")
-    json_crime <- fromJSON(data_crime, flatten = TRUE)
+response_crime <- GET(url_crime)
+data_crime <- content(response_crime, as = "text")
+json_crime <- fromJSON(data_crime, flatten = TRUE)
 
-    df_crime <- json_crime[[2]] %>%
-      select(country_code = countryiso3code, year = date, crime_rate = value) %>%
-      filter(!is.na(crime_rate)) %>%
-      filter(country_code != "")
+df_crime <- json_crime[[2]] %>%
+  select(country_code = countryiso3code, year = date, crime_rate = value) %>%
+  filter(!is.na(crime_rate)) %>%
+  filter(country_code != "")
 
-    head(df_crime)
+head(df_crime)
+```
 
 Similary, I got the API URL then fetched a dataset which contains
 regional aggregates/country code, year 2015, and crime rate (Intentional
@@ -86,17 +97,19 @@ the variables so that we can understand the variables more clearly.
 Then, I removed the N/A values for crime rate and regional
 aggregates/country code to clean out the data.
 
-    url_education <- "http://api.worldbank.org/v2/country/all/indicator/SE.ADT.LITR.ZS?format=json&date=2015"
+``` r
+url_education <- "http://api.worldbank.org/v2/country/all/indicator/SE.ADT.LITR.ZS?format=json&date=2015"
 
-    response_education <- GET(url_education)
-    data_education <- content(response_education, as = "text")
-    json_education <- fromJSON(data_education, flatten = TRUE)
+response_education <- GET(url_education)
+data_education <- content(response_education, as = "text")
+json_education <- fromJSON(data_education, flatten = TRUE)
 
-    df_education <- json_education[[2]] %>%
-      select(country_code = countryiso3code, year = date, literacy_rate = value) %>%
-      filter(country_code != "")
+df_education <- json_education[[2]] %>%
+  select(country_code = countryiso3code, year = date, literacy_rate = value) %>%
+  filter(country_code != "")
 
-    head(df_education)
+head(df_education)
+```
 
 Similary, I got the API URL then fetched a dataset which contains
 regional aggregates/country code, year 2015, and literacy rate for each.
@@ -106,11 +119,13 @@ the variables more clearly. Then, I removed the N/A values for the
 regional aggregates/country code to clean out the data, but not the
 literacy rate since I wanted a smooth merging process.
 
-    df_merged <- merge(df_income, df_crime, by = c("country_code", "year"))
-    df_merged <- merge(df_merged, df_education, by = c("country_code", "year"))
-    df_merged
+``` r
+df_merged <- merge(df_income, df_crime, by = c("country_code", "year"))
+df_merged <- merge(df_merged, df_education, by = c("country_code", "year"))
+df_merged
+```
 
-In here, I merged these three datasets with country\_code and year. This
+In here, I merged these three datasets with country_code and year. This
 would be equivalent to a left join.
 
 ### Method Part 2 and Preliminary Result
@@ -118,104 +133,79 @@ would be equivalent to a left join.
 I used kable for the summary statistics table which includes mean,
 median and sd of each variables.
 
-    library(dplyr)
-    library(kableExtra)
+``` r
+library(dplyr)
+library(kableExtra)
 
-    df_merged %>%
-      summarise(
-        mean_income = mean(income, na.rm = TRUE),
-        median_income = median(income, na.rm = TRUE),
-        sd_income = sd(income, na.rm = TRUE),
-        mean_crime = mean(crime_rate, na.rm = TRUE),
-        median_crime = median(crime_rate, na.rm = TRUE),
-        sd_crime = sd(crime_rate, na.rm = TRUE),
-        mean_literacy = mean(literacy_rate, na.rm = TRUE),
-        median_literacy = median(literacy_rate, na.rm = TRUE),
-        sd_literacy = sd(literacy_rate, na.rm = TRUE)
-      ) %>%
-      kable(caption = "Summary Statistics of Key Variables")
+df_merged %>%
+  summarise(
+    mean_income = mean(income, na.rm = TRUE),
+    median_income = median(income, na.rm = TRUE),
+    sd_income = sd(income, na.rm = TRUE),
+    mean_crime = mean(crime_rate, na.rm = TRUE),
+    median_crime = median(crime_rate, na.rm = TRUE),
+    sd_crime = sd(crime_rate, na.rm = TRUE),
+    mean_literacy = mean(literacy_rate, na.rm = TRUE),
+    median_literacy = median(literacy_rate, na.rm = TRUE),
+    sd_literacy = sd(literacy_rate, na.rm = TRUE)
+  ) %>%
+  kable(caption = "Summary Statistics of Key Variables")
+```
 
-<table>
-<caption>Summary Statistics of Key Variables</caption>
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 12%" />
-<col style="width: 9%" />
-<col style="width: 9%" />
-<col style="width: 11%" />
-<col style="width: 8%" />
-<col style="width: 12%" />
-<col style="width: 14%" />
-<col style="width: 10%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: right;">mean_income</th>
-<th style="text-align: right;">median_income</th>
-<th style="text-align: right;">sd_income</th>
-<th style="text-align: right;">mean_crime</th>
-<th style="text-align: right;">median_crime</th>
-<th style="text-align: right;">sd_crime</th>
-<th style="text-align: right;">mean_literacy</th>
-<th style="text-align: right;">median_literacy</th>
-<th style="text-align: right;">sd_literacy</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: right;">9242.597</td>
-<td style="text-align: right;">5525.005</td>
-<td style="text-align: right;">11993.84</td>
-<td style="text-align: right;">7.406383</td>
-<td style="text-align: right;">5.9</td>
-<td style="text-align: right;">6.314062</td>
-<td style="text-align: right;">78.14366</td>
-<td style="text-align: right;">78.82537</td>
-<td style="text-align: right;">15.46087</td>
-</tr>
-</tbody>
-</table>
+| mean_income | median_income | sd_income | mean_crime | median_crime | sd_crime | mean_literacy | median_literacy | sd_literacy |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 9242.597 | 5525.005 | 11993.84 | 7.406383 | 5.9 | 6.314062 | 78.14366 | 78.82537 | 15.46087 |
 
 Summary Statistics of Key Variables
 
-    # Histogram for income
-    ggplot(df_merged, aes(x = income)) +
-      geom_histogram(bins = 30, fill = "blue", alpha = 0.5) +
-      labs(title = "Income Distribution", x = "Income (GDP per capita)", y = "Count")
+``` r
+# Histogram for income
+ggplot(df_merged, aes(x = income)) +
+  geom_histogram(bins = 30, fill = "blue", alpha = 0.5) +
+  labs(title = "Income Distribution", x = "Income (GDP per capita)", y = "Count")
+```
 
-![](midterm_files/figure-markdown_strict/unnamed-chunk-7-1.png)
+![](midterm_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
-    # Histogram for crime rate
-    ggplot(df_merged, aes(x = crime_rate)) +
-      geom_histogram(bins = 30, fill = "red", alpha = 0.5) +
-      labs(title = "Crime Rate Distribution", x = "Crime Rate", y = "Count")
+``` r
+# Histogram for crime rate
+ggplot(df_merged, aes(x = crime_rate)) +
+  geom_histogram(bins = 30, fill = "red", alpha = 0.5) +
+  labs(title = "Crime Rate Distribution", x = "Crime Rate", y = "Count")
+```
 
-![](midterm_files/figure-markdown_strict/unnamed-chunk-7-2.png)
+![](midterm_files/figure-gfm/unnamed-chunk-7-2.png)<!-- -->
 
-    # Histogram for literacy rate
-    ggplot(df_merged, aes(x = literacy_rate)) +
-      geom_histogram(bins = 30, fill = "red", alpha = 0.5) +
-      labs(title = "Literacy Rate Distribution", x = "Literacy Rate", y = "Count")
+``` r
+# Histogram for literacy rate
+ggplot(df_merged, aes(x = literacy_rate)) +
+  geom_histogram(bins = 30, fill = "red", alpha = 0.5) +
+  labs(title = "Literacy Rate Distribution", x = "Literacy Rate", y = "Count")
+```
 
     ## Warning: Removed 7 rows containing non-finite outside the scale range
     ## (`stat_bin()`).
 
-![](midterm_files/figure-markdown_strict/unnamed-chunk-7-3.png)
+![](midterm_files/figure-gfm/unnamed-chunk-7-3.png)<!-- -->
 
-    # Density plot for income
-    ggplot(df_merged, aes(x = income)) +
-      geom_density(fill = "blue", alpha = 0.5) +
-      labs(title = "Density Plot of Income")
+``` r
+# Density plot for income
+ggplot(df_merged, aes(x = income)) +
+  geom_density(fill = "blue", alpha = 0.5) +
+  labs(title = "Density Plot of Income")
+```
 
-![](midterm_files/figure-markdown_strict/unnamed-chunk-7-4.png)
+![](midterm_files/figure-gfm/unnamed-chunk-7-4.png)<!-- -->
 
-    # Density plot for crime rate
-    ggplot(df_merged, aes(x = crime_rate)) +
-      geom_density(fill = "blue", alpha = 0.5) +
-      labs(title = "Density Plot of Crime Rate")
+``` r
+# Density plot for crime rate
+ggplot(df_merged, aes(x = crime_rate)) +
+  geom_density(fill = "blue", alpha = 0.5) +
+  labs(title = "Density Plot of Crime Rate")
+```
 
-![](midterm_files/figure-markdown_strict/unnamed-chunk-7-5.png) In here,
-I explored the histogram to check the frequency distribution of data
+![](midterm_files/figure-gfm/unnamed-chunk-7-5.png)<!-- --> In here, I
+explored the histogram to check the frequency distribution of data
 values. Looking at the income histogram, we can see that the data is
 highly right-skewed/positively skewed. A small number of countries have
 very high GDP per capita, pulling the distribution to the right. The
@@ -226,7 +216,7 @@ rate distribution is also right-skewed. Most countries have low crime
 rates, but a few have exceptionally high crime rates. This means that a
 small number of countries with high crime rate is dominating the dataset
 which could violate normality. As stated, transformations like
-log(crime\_rate) can help normalize the distribution. However, the
+log(crime_rate) can help normalize the distribution. However, the
 literacy rate appears less skewed with values clustered towards the
 higher end above 70-80%. Unlike income and crime rate, literacy rates
 seems to be normally or slightly left-skewed. Most countries have high
@@ -235,29 +225,37 @@ plots for income and crime rate confirmed that both datasets are right
 skewed, so we will continue this analysis using log transformed income
 and crime rate.
 
-    ggplot(df_merged, aes(x = log(income))) +
-      geom_histogram(bins = 30, fill = "blue", alpha = 0.5) +
-      labs(title = "Log-Transformed Income Distribution", x = "Log(Income)", y = "Count")
+``` r
+ggplot(df_merged, aes(x = log(income))) +
+  geom_histogram(bins = 30, fill = "blue", alpha = 0.5) +
+  labs(title = "Log-Transformed Income Distribution", x = "Log(Income)", y = "Count")
+```
 
-![](midterm_files/figure-markdown_strict/unnamed-chunk-8-1.png)
+![](midterm_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
-    ggplot(df_merged, aes(x = log(crime_rate))) +
-      geom_histogram(bins = 30, fill = "red", alpha = 0.5) +
-      labs(title = "Log-Transformed Crime Rate Distribution", x = "Log(Crime Rate)", y = "Count")
+``` r
+ggplot(df_merged, aes(x = log(crime_rate))) +
+  geom_histogram(bins = 30, fill = "red", alpha = 0.5) +
+  labs(title = "Log-Transformed Crime Rate Distribution", x = "Log(Crime Rate)", y = "Count")
+```
 
-![](midterm_files/figure-markdown_strict/unnamed-chunk-8-2.png) As
-expected, after log transforming income and crime rate, it seems more
-normally distributed.
+![](midterm_files/figure-gfm/unnamed-chunk-8-2.png)<!-- --> As expected,
+after log transforming income and crime rate, it seems more normally
+distributed.
 
-    ggplot(df_merged, aes(x = log(income), y = log(crime_rate))) +
-      geom_point(alpha = 0.6) +
-      geom_smooth(method = "lm", se = FALSE, color = "blue") +
-      labs(title = "Log-Log Scatterplot: Income vs. Crime Rate",
-           x = "Log(Income)", y = "Log(Crime Rate)")
+``` r
+ggplot(df_merged, aes(x = log(income), y = log(crime_rate))) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  labs(title = "Log-Log Scatterplot: Income vs. Crime Rate",
+       x = "Log(Income)", y = "Log(Crime Rate)")
+```
 
-![](midterm_files/figure-markdown_strict/unnamed-chunk-9-1.png)
+![](midterm_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
-    cor(log(df_merged$income), log(df_merged$crime_rate), use = "complete.obs")
+``` r
+cor(log(df_merged$income), log(df_merged$crime_rate), use = "complete.obs")
+```
 
     ## [1] -0.3522739
 
@@ -281,22 +279,26 @@ hypothesis that wealthier nations experience lower crime. However, a few
 outliers exist, showing some high-income nations with unexpectedly high
 crime rates.
 
-    ggplot(df_merged, aes(x = literacy_rate, y = log(crime_rate))) +
-      geom_point() +
-      geom_smooth(method = "lm", se = FALSE, color = "blue") +
-      labs(title = "Education Level vs. Crime Rate",
-           x = "Literacy Rate (%)",
-           y = "log(crime_rate)")
+``` r
+ggplot(df_merged, aes(x = literacy_rate, y = log(crime_rate))) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  labs(title = "Education Level vs. Crime Rate",
+       x = "Literacy Rate (%)",
+       y = "log(crime_rate)")
+```
 
-![](midterm_files/figure-markdown_strict/unnamed-chunk-10-1.png)
+![](midterm_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
-    cor(df_merged$literacy_rate, log(df_merged$crime_rate), use = "complete.obs")
+``` r
+cor(df_merged$literacy_rate, log(df_merged$crime_rate), use = "complete.obs")
+```
 
     ## [1] -0.3122335
 
 As mentioned, the crime rate was log transformed due to the heavy right
 skew. This scatterplot shows the relationship between literacy rate and
-the log(crime\_rate). The regression line shows a slight negative
+the log(crime_rate). The regression line shows a slight negative
 correlation which means that countries with higher literacy rates tend
 to have lower crime rates. However, the correlation seems to be bit
 weaker than the previous plot with a noticeable variation in crime rates
@@ -317,49 +319,55 @@ For this part, we will be using the classifications from 2015 written on
 the worldbank website to divide the categorical variables.
 <https://blogs.worldbank.org/en/opendata/new-country-classifications#>:~:text=As%20of%201%20July%202015,GNI%20per%20capita%20of%20%2412%2C736
 
-    df_final <- df_merged %>%
-      mutate(income_group = case_when(
-        income < 1045 ~ "Low Income",
-        income >= 1045 & income < 4125 ~ "Lower-Middle Income",
-        income >= 4125 & income < 12736 ~ "Upper-Middle Income",
-        income >= 12736 ~ "High Income"
-      ))
+``` r
+df_final <- df_merged %>%
+  mutate(income_group = case_when(
+    income < 1045 ~ "Low Income",
+    income >= 1045 & income < 4125 ~ "Lower-Middle Income",
+    income >= 4125 & income < 12736 ~ "Upper-Middle Income",
+    income >= 12736 ~ "High Income"
+  ))
 
-    df_income_count <- df_final %>%
-      count(income_group)
+df_income_count <- df_final %>%
+  count(income_group)
 
-    ggplot(df_income_count, aes(x = income_group, y = n, fill = income_group)) +
-      geom_bar(stat = "identity") +
-      labs(title = "Number of Countries in Each Income Group",
-           x = "Income Group", y = "Number of Countries") +
-      theme_minimal() +
-      theme(axis.text.x = element_text(angle = 30, hjust = 1))  
+ggplot(df_income_count, aes(x = income_group, y = n, fill = income_group)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Number of Countries in Each Income Group",
+       x = "Income Group", y = "Number of Countries") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))  
+```
 
-![](midterm_files/figure-markdown_strict/unnamed-chunk-11-1.png) As we
-can see, the largest category consists of Upper-Middle Income countries
+![](midterm_files/figure-gfm/unnamed-chunk-11-1.png)<!-- --> As we can
+see, the largest category consists of Upper-Middle Income countries
 which make up the highest number in this dataset. Also, a significant
 portion of the analyzed countries are categorized as Lower-Middle Income
 countries. We can also see that there are only few high and low income
 countries.
 
-    ggplot(df_final, aes(x = income_group, y = log(crime_rate))) +
-      geom_boxplot(fill = "blue") +
-      labs(title = "Crime Rate by Income Group", x = "Income Level", y = "Crime Rate")
+``` r
+ggplot(df_final, aes(x = income_group, y = log(crime_rate))) +
+  geom_boxplot(fill = "blue") +
+  labs(title = "Crime Rate by Income Group", x = "Income Level", y = "Crime Rate")
+```
 
-![](midterm_files/figure-markdown_strict/unnamed-chunk-12-1.png)
+![](midterm_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
 
-    df_final1 <- df_merged %>%
-      mutate(literacy_group = ifelse(literacy_rate > median(literacy_rate, na.rm = TRUE), "High", "Low"))
+``` r
+df_final1 <- df_merged %>%
+  mutate(literacy_group = ifelse(literacy_rate > median(literacy_rate, na.rm = TRUE), "High", "Low"))
 
-    ggplot(df_final1, aes(x = literacy_group, y = log(crime_rate))) +
-      geom_boxplot(fill = "purple") +
-      labs(title = "Crime Rate by Literacy Group", x = "Literacy Level", y = "log(Crime Rate)")
+ggplot(df_final1, aes(x = literacy_group, y = log(crime_rate))) +
+  geom_boxplot(fill = "purple") +
+  labs(title = "Crime Rate by Literacy Group", x = "Literacy Level", y = "log(Crime Rate)")
+```
 
-![](midterm_files/figure-markdown_strict/unnamed-chunk-12-2.png) Looking
-at the income boxplot, High-Income Countries have the lowest median
-crime rate and a smaller spread which means less variability in crime
-levels. We can see that Low-Income Countries show higher median crime
-rates showing a possible link between economic hardship and crime.
+![](midterm_files/figure-gfm/unnamed-chunk-12-2.png)<!-- --> Looking at
+the income boxplot, High-Income Countries have the lowest median crime
+rate and a smaller spread which means less variability in crime levels.
+We can see that Low-Income Countries show higher median crime rates
+showing a possible link between economic hardship and crime.
 Lower-Middle and Upper-Middle Income Groups have higher crime rates and
 larger variability meaning that crime levels fluctuate more within these
 groups. The longer whiskers and spread-out data in some groups means
@@ -374,13 +382,15 @@ countries with missing literacy data which shows a wider distribution of
 crime rates. We did not clean this category since we are working with a
 small dataset.
 
-    ggplot(df_final, aes(x = log(crime_rate), fill = income_group)) +
-      geom_density(alpha = 0.5) +
-      labs(title = "Density Plot: Crime Rate by Income Group",
-           x = "Log(Crime Rate)", y = "Density") +
-      theme_minimal()
+``` r
+ggplot(df_final, aes(x = log(crime_rate), fill = income_group)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Density Plot: Crime Rate by Income Group",
+       x = "Log(Crime Rate)", y = "Density") +
+  theme_minimal()
+```
 
-![](midterm_files/figure-markdown_strict/unnamed-chunk-13-1.png) In the
+![](midterm_files/figure-gfm/unnamed-chunk-13-1.png)<!-- --> In the
 green region meaning Low-Income Countries, the crime rate distribution
 is highly concentrated around log(Crime Rate) ≈ 2.0. This shows taht
 most low-income countries have similar crime rates. In the light blue
@@ -390,7 +400,7 @@ variation in crime rates among lower-middle-income countries compared to
 low-income countries. In the purple region which represents the
 Upper-Middle Income, it shows a wider spread in crime rates with some
 countries having very low crime rates (log ≈ 0.5) and some with high
-crime (log &gt; 3). The distribution is more evenly spread compared to
+crime (log \> 3). The distribution is more evenly spread compared to
 Low-Income or Lower-Middle income countries. In the red/pink region
 which are High-Income countries, the crime rate distribution is more
 dispersed and generally lower with a peak closer to log(Crime Rate) ≈
@@ -398,15 +408,17 @@ dispersed and generally lower with a peak closer to log(Crime Rate) ≈
 within this group potentially due to external factors like inequality,
 governance, or urbanization.
 
-    df_final2 <- df_merged %>%
-      mutate(log_income = log(income),
-             log_crime_rate = log(crime_rate))
+``` r
+df_final2 <- df_merged %>%
+  mutate(log_income = log(income),
+         log_crime_rate = log(crime_rate))
 
-    cor <- df_final2 %>%
-      select(log_income, log_crime_rate, literacy_rate) %>%
-      cor(use = "complete.obs")
+cor <- df_final2 %>%
+  select(log_income, log_crime_rate, literacy_rate) %>%
+  cor(use = "complete.obs")
 
-    print(cor)
+print(cor)
+```
 
     ##                log_income log_crime_rate literacy_rate
     ## log_income      1.0000000     -0.2434619     0.9042342
@@ -432,16 +444,18 @@ higher literacy rates tend to have lower crime rates. While this
 relationship is stronger than income-crime, it is still not very strong.
 As explained, Other factors may be involved in this variaton.
 
-    library(ggcorrplot)
-    cor_matrix <- df_final2 %>%
-      select(log_income, log_crime_rate, literacy_rate) %>%
-      cor(method = "spearman", use = "complete.obs")
+``` r
+library(ggcorrplot)
+cor_matrix <- df_final2 %>%
+  select(log_income, log_crime_rate, literacy_rate) %>%
+  cor(method = "spearman", use = "complete.obs")
 
-    ggcorrplot(cor_matrix, lab = TRUE, title = "Correlation Heatmap")
+ggcorrplot(cor_matrix, lab = TRUE, title = "Correlation Heatmap")
+```
 
-![](midterm_files/figure-markdown_strict/unnamed-chunk-15-1.png) We use
-the Spearman method and a heatmap for this. Income and Literacy Rate is
-0.86 which shows a strong positive correlation. This suggests that
+![](midterm_files/figure-gfm/unnamed-chunk-15-1.png)<!-- --> We use the
+Spearman method and a heatmap for this. Income and Literacy Rate is 0.86
+which shows a strong positive correlation. This suggests that
 higher-income countries tend to have higher literacy rates. This
 relationship is expected, as wealthier countries typically invest more
 in education, leading to higher literacy levels. Income and Crime Rate
